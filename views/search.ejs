@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔍 Pencarian</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+    }
+
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar h1 {
+      font-size: 1.2rem;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    .search-box {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .search-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-form input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+
+    .search-form input:focus {
+      outline: none;
+      border-color: #1877f2;
+    }
+
+    .search-form button {
+      padding: 12px 25px;
+      background: #1877f2;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+
+    .search-form button:hover {
+      background: #0f5cd6;
+    }
+
+    .section {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    h3 {
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 1.05rem;
+    }
+
+    /* USER */
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .user-item:last-child {
+      border-bottom: none;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .btn-follow {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: 0.2s;
+    }
+
+    .btn-follow:hover {
+      background: #0f5cd6;
+    }
+
+    .btn-follow.following {
+      background: #e4e6eb;
+      color: #000;
+    }
+
+    /* POST */
+
+    .post-item {
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .post-item:last-child {
+      border-bottom: none;
+    }
+
+    .post-user {
+      font-weight: 500;
+      text-decoration: none;
+      color: #1877f2;
+      font-size: 0.9rem;
+    }
+
+    .post-media {
+      margin: 15px 0;
+      text-align: center;
+      background: #f8f9fa;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .media {
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+    }
+    .file-info {
+      padding: 15px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    /*.post-media img,
+    .post-media video {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .post-media audio {
+      width: 100%;
+      padding: 10px;
+    }*/
+
+    .post-media:hover {
+      opacity: 0.96;
+      transition: 0.2s ease;
+    }
+
+    .post-caption {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .post-meta {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 8px;
+      display: flex;
+      gap: 18px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 20px 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <h1>🔍 Pencarian</h1>
+    <a href="/" style="text-decoration: none; font-size: 1.2rem;">🏠</a>
+  </nav>
+
+  <div class="container">
+
+    <div class="search-box">
+      <form class="search-form" action="/search" method="GET">
+        <input type="text" name="q" placeholder="Cari user atau postingan..." value="<%= query || '' %>">
+        <button type="submit">Cari</button>
+      </form>
+    </div>
+
+    <% if (query) { %>
+
+      <!-- USERS -->
+      <div class="section">
+        <h3>👤 User (<%= results.users.length %>)</h3>
+
+        <% if (results.users.length === 0) { %>
+          <div class="empty">Tidak ada user ditemukan</div>
+        <% } %>
+
+        <% results.users.forEach(user => { %>
+          <div class="user-item">
+<div class="user-info">
+  <% if (user.avatar) { %>
+    <img src="<%= user.avatar %>" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+  <% } else { %>
+    <div class="avatar">👤</div>
+  <% } %>
+  <a href="/profile/<%= user.id %>" style="text-decoration:none; color:#333;">@<%= user.username %></a>
+</div>
+
+            <% if (currentUser && currentUser.id !== user.id) { %>
+              <button 
+                class="btn-follow <%= user.isFollowing ? 'following' : '' %>"
+                onclick="toggleFollowSearch('<%= user.id %>', this)"
+              >
+                <%= user.isFollowing ? '❌ Unfollow' : '➕ Follow' %>
+              </button>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+
+      <!-- POSTS -->
+      <div class="section">
+        <h3>📝 Postingan (<%= results.posts.length %>)</h3>
+
+        <% if (results.posts.length === 0) { %>
+          <div class="empty">Tidak ada postingan ditemukan</div>
+        <% } %>
+
+        <% results.posts.forEach(post => { %>
+          <div class="post-item">
+
+            <a href="/profile/<%= post.user.id %>" class="post-user">
+              @<%= post.user.username %>
+            </a>
+
+            <div class="post-media">
+              <a href="/post/<%= post.id %>">
+  <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
+    <a href="/post/<%= post.id %>">
+      <img src="<%= post.mediaUrl %>" class="media" alt="post image" loading="lazy">
+    </a>
+  <% } else if (post.mediaType === 'video') { %>
+    <video controls class="media">
+      <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+    </video>
+    <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+  <% } else if (post.mediaType === 'audio') { %>
+    <audio controls class="media">
+      <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+    </audio>
+    <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+  <% } else { %>
+    <a href="/post/<%= post.id %>">
+      <div class="file-info">📄 Dokumen</div>
+    </a>
+  <% } %>
+              </a>
+            </div>
+
+            <p class="post-caption">
+              <%= post.caption %>
+            </p>
+
+            <div class="post-meta">
+              <span>❤️ <%= post.likesCount || 0 %></span>
+              <span>💬 <%= post.commentsCount || 0 %></span>
+            </div>
+
+          </div>
+        <% }) %>
+
+      </div>
+
+    <% } %>
+
+  </div>
+
+  <script>
+    // Fungsi untuk follow/unfollow tanpa reload (khusus halaman search)
+    async function toggleFollowSearch(userId, button) {
+      try {
+        const response = await fetch('/follow/' + userId, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          if (data.following) {
+            button.textContent = '❌ Unfollow';
+            button.classList.add('following');
+          } else {
+            button.textContent = '➕ Follow';
+            button.classList.remove('following');
+          }
+        } else {
+          alert('Gagal: ' + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Terjadi kesalahan');
+      }
+    }
+  </script>
+
+</body>
+</html>

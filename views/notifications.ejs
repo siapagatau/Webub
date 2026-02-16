@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔔 Notifikasi</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+    }
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .notification {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: transform 0.3s;
+    }
+    .notification:hover {
+      transform: translateX(5px);
+    }
+    .notification.unread {
+      background: #e6f7ff;
+      border-left: 5px solid #1877f2;
+    }
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 25px;
+    }
+    .content {
+      flex: 1;
+    }
+    .content strong {
+      color: #1877f2;
+    }
+    .time {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 5px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      background: white;
+      border-radius: 15px;
+    }
+    .btn-clear {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>🔔 Notifikasi</h1>
+    <div>
+      <a href="/" style="text-decoration: none; font-size: 1.2rem;">🏠</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <% if (notifications.length > 0) { %>
+      <form action="/notifications/clear" method="POST" style="text-align: right;">
+        <button type="submit" class="btn-clear" onclick="return confirm('Hapus semua notifikasi?')">🗑️ Hapus Semua</button>
+      </form>
+    <% } %>
+
+    <% if (notifications.length === 0) { %>
+      <div class="empty-state">
+        <div style="font-size: 4rem;">🔕</div>
+        <h3>Tidak ada notifikasi</h3>
+        <p style="color: #666; margin-top: 10px;">Tenang, tidak ada aktivitas baru</p>
+      </div>
+    <% } %>
+
+    <% notifications.forEach(n => { %>
+      <div class="notification <%= !n.read ? 'unread' : '' %>">
+        <div class="avatar">👤</div>
+        <div class="content">
+          <% if (n.type === 'like') { %>
+            <strong><%= n.fromUser.username %></strong> menyukai <a href="/profile/<%= n.fromUser.id %>">postinganmu</a> ❤️
+          <% } else if (n.type === 'comment') { %>
+            <strong><%= n.fromUser.username %></strong> mengomentari <a href="/profile/<%= n.fromUser.id %>">postinganmu</a> 💬
+          <% } else if (n.type === 'follow') { %>
+            <strong><%= n.fromUser.username %></strong> mulai mengikutimu 👥
+          <% } else if (n.type === 'new_post') { %>
+            <strong><%= n.fromUser.username %></strong> membuat <a href="/post/<%= n.postId %>">postingan baru</a> 📤
+          <% } %>
+          <div class="time"><%= new Date(n.timestamp).toLocaleString('id-ID') %></div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</body>
+</html>

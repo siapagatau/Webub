@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>👤 Profil @<%= profileUser.username %></title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* (style tetap sama, tidak perlu diubah) */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      line-height: 1.6;
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    /* Navbar */
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .navbar h1 { font-size: 1.5rem; color: #1877f2; }
+    .nav-links { display: flex; gap: 15px; flex-wrap: wrap; }
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: #1877f2; }
+    
+    /* Profile Header */
+    .profile-header {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .avatar-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #1877f2, #42b72a);
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: white;
+    }
+    .username-large {
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .bio {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 25px 0;
+    }
+    .stat {
+      text-align: center;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+    .stat:hover {
+      background: #f0f2f5;
+    }
+    .stat-value {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #1877f2;
+    }
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .action-buttons {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 25px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 5px;
+      transition: transform 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+    }
+    .btn-primary {
+      background: #1877f2;
+      color: white;
+    }
+    .btn-secondary {
+      background: #e4e6eb;
+      color: #000;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    
+    /* Posts Grid */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .post-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    .post-card:hover {
+      transform: translateY(-5px);
+    }
+    .post-media {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #f8f9fa;
+    }
+    .post-info {
+      padding: 10px;
+      display: flex;
+      justify-content: space-around;
+      background: #f8f9fa;
+    }
+    .post-info span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #666;
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .user-list {
+      margin-top: 20px;
+    }
+    .user-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .user-item a {
+      text-decoration: none;
+      color: #1877f2;
+      font-weight: bold;
+    }
+    .user-item button {
+      background: none;
+      border: none;
+      color: #1877f2;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 480px) {
+      .stats { gap: 20px; }
+      .posts-grid { grid-template-columns: repeat(2, 1fr); }
+      .navbar { flex-direction: column; text-align: center; }
+      .actions { justify-content: space-around; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>👤 Profil Pengguna</h1>
+    <div class="nav-links">
+      <a href="/">🏠</a>
+      <a href="/search">🔍</a>
+      <% if (currentUser) { %>
+        <a href="/upload">📤</a>
+        <a href="/notifications">🔔</a>
+        <% if (currentUser.id === profileUser.id) { %>
+          <a href="/profile/edit">✏️</a>
+        <% } %>
+        <a href="/logout">🚪</a>
+      <% } else { %>
+        <a href="/login">🔐</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="profile-header">
+      <div class="avatar-large">
+  <% if (profileUser.avatar) { %>
+    <img src="<%= profileUser.avatar %>" style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
+  <% } else { %>
+    👤
+  <% } %>
+</div>
+      <div class="username-large">@<%= profileUser.username %></div>
+      <div class="bio"><%= profileUser.bio || 'Belum ada bio' %></div>
+      
+      <div class="stats">
+        <div class="stat" onclick="showModal('posts')">
+          <div class="stat-value"><%= posts.length %></div>
+          <div class="stat-label">📦 Postingan</div>
+        </div>
+        <!-- Hanya satu elemen untuk followers dengan id -->
+        <div class="stat" onclick="showModal('followers')">
+          <div class="stat-value" id="followers-count"><%= followersCount %></div>
+          <div class="stat-label">👥 Followers</div>
+        </div>
+<div class="stat" onclick="showModal('following')">
+  <div class="stat-value" id="following-count"><%= followingCount %></div>
+  <div class="stat-label">👤 Following</div>
+</div>
+      </div>
+
+      <div class="action-buttons">
+        <% if (currentUser) { %>
+          <% if (currentUser.id === profileUser.id) { %>
+            <a href="/profile/edit" class="btn btn-primary">✏️ Edit Profil</a>
+          <% } else { %>
+            <button 
+              class="btn <%= isFollowing ? 'btn-secondary' : 'btn-primary' %>"
+              onclick="toggleFollow('<%= profileUser.id %>', this)"
+            >
+              <%= isFollowing ? '❌ Unfollow' : '➕ Follow' %>
+            </button>
+          <% } %>
+        <% } else { %>
+          <a href="/login" class="btn btn-primary">🔐 Login untuk Follow</a>
+        <% } %>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: 15px;">📸 Postingan <%= profileUser.username %></h3>
+    
+    <% if (posts.length === 0) { %>
+      <div style="text-align: center; padding: 40px; background: white; border-radius: 15px;">
+        <div style="font-size: 4rem;">📭</div>
+        <p style="color: #666; margin-top: 20px;">Belum ada postingan</p>
+        <% if (currentUser && currentUser.id === profileUser.id) { %>
+          <a href="/upload" class="btn btn-primary" style="margin-top: 20px;">📤 Upload Sekarang</a>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="posts-grid">
+        <% posts.forEach(post => { %>
+          <div class="post-card">
+            <a href="/post/<%= post.id %>" style="text-decoration: none; color: inherit;">
+              <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
+                <img src="<%= post.mediaUrl %>" class="post-media" alt="post">
+              <% } else if (post.mediaType === 'video') { %>
+                <video class="post-media" controls>
+                  <source src="<%= post.mediaUrl %>">
+                </video>
+              <% } else { %>
+                <div class="post-media" style="display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                  📄
+                </div>
+              <% } %>
+            </a>
+            <div class="post-info">
+              <span>❤️ <%= post.likesCount %></span>
+              <span>💬 <%= post.commentsCount %></span>
+            </div>
+            <% if (isOwnProfile) { %>
+              <form action="/post/delete/<%= post.id %>" method="POST" onsubmit="return confirm('Hapus postingan?')">
+                <button type="submit" style="width: 100%; padding: 5px; background: #dc3545; color: white; border: none; cursor: pointer;">🗑️ Hapus</button>
+              </form>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+<!-- Modal Followers -->
+<div id="followersModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('followers')">&times;</span>
+    <h3>👥 Followers</h3>
+    <div class="user-list" id="followers-list">
+      <% if (followers.length === 0) { %>
+        <p style="text-align: center; color: #666;">Belum ada followers</p>
+      <% } %>
+      <% followers.forEach(f => { %>
+        <div class="user-item" id="follower-<%= f.id %>">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <% if (f.avatar) { %>
+              <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+            <% } else { %>
+              <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
+            <% } %>
+            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
+          </div>
+          <% if (currentUser && currentUser.id !== f.id) { %>
+            <button 
+              class="btn <%= f.isFollowed ? 'btn-secondary' : 'btn-primary' %>"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
+              type="button"
+            >
+              <%= f.isFollowed ? '❌ Unfollow' : '➕ Follow' %>
+            </button>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Following -->
+<div id="followingModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('following')">&times;</span>
+    <h3>👤 Following</h3>
+    <div class="user-list" id="following-list">
+      <% if (following.length === 0) { %>
+        <p style="text-align: center; color: #666;">Belum mengikuti siapapun</p>
+      <% } %>
+      <% following.forEach(f => { %>
+        <div class="user-item" id="following-<%= f.id %>">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <% if (f.avatar) { %>
+              <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+            <% } else { %>
+              <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
+            <% } %>
+            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
+          </div>
+          <% if (currentUser && currentUser.id === profileUser.id) { %>
+            <button 
+              class="btn btn-secondary"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
+              type="button"
+            >
+              ❌ Unfollow
+            </button>
+          <% } else if (currentUser && currentUser.id !== f.id) { %>
+            <button 
+              class="btn <%= f.isFollowedByMe ? 'btn-secondary' : 'btn-primary' %>"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
+              type="button"
+            >
+              <%= f.isFollowedByMe ? '❌ Unfollow' : '➕ Follow' %>
+            </button>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<script>
+// ID pemilik profil yang sedang dilihat
+const PROFILE_USER_ID = '<%= profileUser.id %>';
+// ID pengguna yang sedang login (jika ada)
+const CURRENT_USER_ID = '<%= currentUser ? currentUser.id : null %>';
+// Apakah ini profil sendiri?
+const IS_OWN_PROFILE = CURRENT_USER_ID === PROFILE_USER_ID;
+
+async function toggleFollow(userId, button) {
+  try {
+    const response = await fetch('/follow/' + userId, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      // 1. Perbarui teks dan kelas tombol yang diklik
+      if (data.following) {
+        button.textContent = '❌ Unfollow';
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-secondary');
+      } else {
+        button.textContent = '➕ Follow';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-primary');
+      }
+
+      // 2. Perbarui angka di header sesuai konteks
+      if (userId === PROFILE_USER_ID) {
+        // Jika follow/unfollow pemilik profil → update jumlah followers
+        document.getElementById('followers-count').textContent = data.followersCount;
+      } else if (IS_OWN_PROFILE) {
+        // Jika ini profil sendiri dan kita follow/unfollow orang lain → update jumlah following
+        const followingCountElem = document.getElementById('following-count');
+        if (followingCountElem) {
+          let current = parseInt(followingCountElem.textContent) || 0;
+          followingCountElem.textContent = data.following ? current + 1 : current - 1;
+        }
+      }
+
+      // 3. Jika unfollow dan tombol berada di dalam modal following, hapus item dari daftar
+      if (!data.following) {
+        const isInFollowingModal = button.closest('#following-list') !== null;
+        if (isInFollowingModal) {
+          const userItem = button.closest('.user-item');
+          if (userItem) userItem.remove();
+
+          // Jika daftar following kosong, tampilkan pesan
+          const followingList = document.getElementById('following-list');
+          if (followingList && followingList.children.length === 0) {
+            followingList.innerHTML = '<p style="text-align: center; color: #666;">Belum mengikuti siapapun</p>';
+          }
+        }
+      }
+    } else {
+      alert('Gagal: ' + data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Terjadi kesalahan');
+  }
+}
+
+  // Fungsi lain (showModal, closeModal, window.onclick) tetap sama
+  /*function showModal(type) {
+    if (type === 'followers' && <%= followersCount %> > 0) {
+      document.getElementById('followersModal').style.display = 'block';
+    } else if (type === 'following' && <%= followingCount %> > 0) {
+      document.getElementById('followingModal').style.display = 'block';
+    }
+  }*/
+
+function showModal(type) {
+  const modal = document.getElementById(type + 'Modal');
+  if (modal) {
+    modal.style.display = 'block';
+  }
+}
+
+  function closeModal(type) {
+    document.getElementById(type + 'Modal').style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>

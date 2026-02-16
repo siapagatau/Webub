@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📤 Upload File</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .emoji-header {
+      text-align: center;
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #666;
+      font-weight: 500;
+    }
+    .file-input {
+      width: 100%;
+      padding: 30px;
+      border: 2px dashed #667eea;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .file-input:hover {
+      background: #f0f3ff;
+    }
+    .file-input input {
+      display: none;
+    }
+    .file-input .icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+    .file-info {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5a67d8;
+    }
+    .error {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .info {
+      background: #e6f7ff;
+      color: #0077b6;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #667eea;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="emoji-header">📤</div>
+    <h2>Upload File</h2>
+    
+    <div class="info">
+      ℹ️ Mendukung semua jenis file. Maksimal 100MB.
+    </div>
+    
+    <% if (locals.error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+    
+    <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+      <div class="form-group">
+        <label>📁 Pilih File</label>
+        <div class="file-input" onclick="document.getElementById('file').click()">
+          <div class="icon">📎</div>
+          <div id="fileName">Klik untuk pilih file</div>
+          <input type="file" name="file" id="file" required onchange="updateFileName(this)">
+        </div>
+        <div class="file-info" id="fileSize"></div>
+      </div>
+      
+      <div class="form-group">
+        <label>📝 Caption (opsional)</label>
+        <textarea name="caption" placeholder="Tulis caption untuk postinganmu..."></textarea>
+      </div>
+      
+      <button type="submit" id="submitBtn">Upload Sekarang 🚀</button>
+    </form>
+    
+    <a href="/" class="back-link">🏠 Kembali ke Beranda</a>
+  </div>
+
+  <script>
+    function updateFileName(input) {
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        fileName.textContent = file.name;
+        
+        // Format ukuran file
+        let size = file.size;
+        let unit = 'B';
+        if (size > 1024) { size /= 1024; unit = 'KB'; }
+        if (size > 1024) { size /= 1024; unit = 'MB'; }
+        if (size > 1024) { size /= 1024; unit = 'GB'; }
+        
+        fileSize.textContent = `Ukuran: ${size.toFixed(2)} ${unit}`;
+        
+        // Validasi ukuran (100MB)
+        if (file.size > 100 * 1024 * 1024) {
+          alert('❌ File terlalu besar! Maksimal 100MB');
+          input.value = '';
+          fileName.textContent = 'Klik untuk pilih file';
+          fileSize.textContent = '';
+        }
+      } else {
+        fileName.textContent = 'Klik untuk pilih file';
+        fileSize.textContent = '';
+      }
+    }
+    
+    // Loading state saat submit
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Mengupload...';
+    });
+  </script>
+</body>
+</html>

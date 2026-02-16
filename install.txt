@@ -1,0 +1,1 @@
+npm install express express-session multer ejs lowdb@1.0.0 uuid bcryptjs

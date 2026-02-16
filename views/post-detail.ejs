@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Detail Postingan</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-size: 16px;
+    }
+
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #1877f2;
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+    .post-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+    }
+    .user-info {
+      flex: 1;
+    }
+    .username {
+      font-weight: bold;
+      text-decoration: none;
+      color: #000;
+    }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .media-container {
+      margin: 15px 0;
+      text-align: center;
+      background: #f8f9fa;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .media {
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+    }
+    .caption {
+      margin: 15px 0;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+    .actions {
+      display: flex;
+      gap: 20px;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #666;
+    }
+    .action-btn.liked { color: #e41e3f; }
+    .comments-section {
+      margin-top: 20px;
+    }
+    .comments-section h4 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .comment {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .comment strong {
+      color: #1877f2;
+      margin-right: 8px;
+    }
+    .comment-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .comment-form input {
+      font-size: 16px;
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+    }
+    .comment-form button {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .login-prompt {
+      text-align: center;
+      margin-top: 15px;
+      color: #666;
+    }
+    .login-prompt a {
+      color: #1877f2;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>📄 Detail Postingan</h1>
+    <a href="/" style="text-decoration: none; font-size: 1.2rem;">🏠 Beranda</a>
+  </nav>
+  <div class="container">
+    <a href="javascript:history.back()" class="back-link">⬅️ Kembali</a>
+    
+    <div class="post-card">
+<div class="post-header">
+  <% if (user.avatar) { %>
+    <img src="<%= user.avatar %>" class="avatar" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+  <% } else { %>
+    <div class="avatar">👤</div>
+  <% } %>
+  <div class="user-info">
+    <a href="/profile/<%= user.id %>" class="username">@<%= user.username %></a>
+    <div class="timestamp"><%= new Date(post.timestamp).toLocaleString('id-ID') %></div>
+  </div>
+</div>
+
+      <div class="media-container">
+        <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
+          <img src="<%= post.mediaUrl %>" class="media" alt="post image">
+        <% } else if (post.mediaType === 'video') { %>
+          <video controls class="media">
+            <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+          </video>
+        <% } else if (post.mediaType === 'audio') { %>
+          <audio controls class="media">
+            <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+          </audio>
+        <% } else { %>
+          <div style="padding: 20px;">
+            <a href="<%= post.mediaUrl %>" target="_blank" style="font-size: 1.2rem;">📄 Download Dokumen</a>
+          </div>
+        <% } %>
+      </div>
+
+      <% if (post.caption) { %>
+        <div class="caption"><%= post.caption %></div>
+      <% } %>
+
+      <!-- Actions: like & comment count (menggunakan JavaScript) -->
+<div class="actions">
+  <% if (currentUser) { %>
+    <button onclick="toggleLike('<%= post.id %>', this)" class="action-btn <%= liked ? 'liked' : '' %>">
+      <span class="like-icon"><%= liked ? '❤️' : '🤍' %></span>
+      <span class="like-count"><%= likesCount %></span>
+    </button>
+  <% } else { %>
+    <span class="action-btn" style="cursor: default;">
+      <span class="like-icon">❤️</span>
+      <span class="like-count"><%= likesCount %></span>
+    </span>
+  <% } %>
+  <span class="action-btn">💬 <span id="comment-count-<%= post.id %>"><%= comments.length %></span></span>
+</div>
+
+      <!-- Bagian komentar dengan id container untuk komentar -->
+      <div class="comments-section">
+        <h4>Komentar</h4>
+        <div id="comment-items-<%= post.id %>">
+          <% if (comments.length === 0) { %>
+            <p style="color: #666; text-align: center;">Belum ada komentar. Jadilah yang pertama!</p>
+          <% } %>
+          <% comments.forEach(c => { %>
+            <div class="comment">
+              <strong><%= c.username %>:</strong> <%= c.text %>
+            </div>
+          <% }) %>
+        </div>
+
+        <% if (currentUser) { %>
+          <!-- Form komentar menggunakan onsubmit untuk memanggil addComment -->
+          <form onsubmit="addComment(event, '<%= post.id %>')" class="comment-form">
+            <input type="text" name="comment" placeholder="Tulis komentar..." required maxlength="500">
+            <button type="submit">Kirim</button>
+          </form>
+        <% } else { %>
+          <div class="login-prompt">
+            <a href="/login">Login</a> untuk berkomentar
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Fungsi untuk like (toggle)
+function toggleLike(postId, button) {
+  fetch('/like/' + postId, {
+    method: 'POST'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const icon = button.querySelector('.like-icon');
+      const count = button.querySelector('.like-count');
+
+      icon.textContent = data.liked ? '❤️' : '🤍';
+      count.textContent = data.likeCount;
+
+      if (data.liked) {
+        button.classList.add('liked');
+      } else {
+        button.classList.remove('liked');
+      }
+    }
+  })
+  .catch(err => console.error('Error liking post:', err));
+}
+
+// Fungsi untuk menambah komentar (dengan update jumlah komentar)
+function addComment(event, postId) {
+  event.preventDefault();
+
+  const form = event.target;
+  const input = form.querySelector('input[name="comment"]');
+  const text = input.value.trim();
+  if (!text) return;
+
+  fetch('/comment/' + postId, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comment: text })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const container = document.getElementById('comment-items-' + postId);
+      
+      // Hapus pesan "Belum ada komentar" jika ada
+      const emptyMessage = container.querySelector('p');
+      if (emptyMessage && emptyMessage.textContent.includes('Belum ada komentar')) {
+        emptyMessage.remove();
+      }
+
+      // Buat elemen komentar baru
+      const newComment = document.createElement('div');
+      newComment.className = 'comment';
+      // Gunakan username dari response (asumsikan server mengembalikan data.user atau data.comment.username)
+      // Jika server mengembalikan { success: true, comment: { text, username } }
+      const username = data.comment.username || 'Kamu';
+      newComment.innerHTML = "<strong>" + username + ":</strong> " + data.comment.text;
+      
+      container.appendChild(newComment);
+
+      // Reset input
+      input.value = '';
+
+      // Perbarui jumlah komentar
+      const countSpan = document.getElementById('comment-count-' + postId);
+      if (countSpan) {
+        let currentCount = parseInt(countSpan.textContent) || 0;
+        countSpan.textContent = currentCount + 1;
+      }
+    }
+  })
+  .catch(err => console.error('Error adding comment:', err));
+}
+</script>
+</body>
+</html>

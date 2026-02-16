@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>✏️ Edit Profil</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ====== Gaya dasar (sama seperti sebelumnya) ====== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #666;
+      font-weight: 500;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #5a67d8;
+    }
+    .btn-secondary {
+      background: #e4e6eb;
+      color: #000;
+    }
+    .btn-secondary:hover {
+      background: #d8dadf;
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .error {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .info {
+      background: #e6f7ff;
+      color: #0077b6;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    hr {
+      margin: 30px 0;
+      border: none;
+      border-top: 2px solid #eee;
+    }
+    /* Gaya tambahan untuk avatar */
+    .avatar-wrapper {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .avatar-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #1877f2;
+    }
+    .avatar-placeholder {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #ddd;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+    }
+    .button-group {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .button-group form {
+      display: inline-block;
+    }
+    .btn-loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>✏️ Edit Profil</h2>
+    
+    <!-- Pesan error (jika ada) -->
+    <% if (locals.error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+
+    <!-- Form utama edit profil -->
+    <form action="/profile/edit" method="POST">
+      <div class="form-group">
+        <label>👤 Username</label>
+        <input type="text" value="<%= user.username %>" disabled style="background: #f8f9fa;">
+        <small style="color: #666;">Username tidak bisa diubah</small>
+      </div>
+      
+      <div class="form-group">
+        <label>📝 Bio</label>
+        <textarea name="bio"><%= user.bio %></textarea>
+      </div>
+      
+      <hr>
+      <h3 style="margin-bottom: 20px;">🔐 Ganti Password</h3>
+      <p class="info">Kosongkan jika tidak ingin mengganti password</p>
+      
+      <div class="form-group">
+        <label>🔑 Password Saat Ini</label>
+        <input type="password" name="currentPassword" placeholder="Masukkan password saat ini">
+      </div>
+      
+      <div class="form-group">
+        <label>🔑 Password Baru</label>
+        <input type="password" name="newPassword" placeholder="Minimal 6 karakter">
+      </div>
+      
+      <div class="form-group">
+        <label>🔑 Konfirmasi Password Baru</label>
+        <input type="password" name="confirmPassword" placeholder="Ketik ulang password baru">
+      </div>
+      
+      <button type="submit">💾 Simpan Perubahan</button>
+      <a href="/profile/<%= user.id %>" class="btn-secondary" style="display: block; text-align: center; text-decoration: none; padding: 14px; border-radius: 10px;">↩️ Batal</a>
+    </form>
+
+<hr>
+<h3 style="margin: 30px 0 15px;">📸 Foto Profil</h3>
+
+<div class="avatar-wrapper">
+  <div id="avatar-container">
+    <% if (user.avatar) { %>
+      <img src="<%= user.avatar %>" id="avatar-preview" class="avatar-image">
+    <% } else { %>
+      <div id="avatar-preview" class="avatar-placeholder">👤</div>
+    <% } %>
+  </div>
+
+  <div class="button-group">
+    <!-- Form untuk upload -->
+    <form id="avatar-form" action="/profile/avatar" method="POST" enctype="multipart/form-data" style="display: inline;">
+      <input type="file" id="avatar-input" name="avatar" style="display: none;">
+      <button type="button" id="upload-btn" class="btn btn-primary">
+        <%= user.avatar ? '📤 Ganti Foto' : '📤 Upload Foto' %>
+      </button>
+    </form>
+
+    <% if (user.avatar) { %>
+      <!-- Form untuk delete -->
+      <form id="delete-form" action="/profile/avatar/delete" method="POST" style="display: inline;">
+        <button type="submit" id="delete-btn" class="btn btn-danger">🗑️ Hapus</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const avatarInput = document.getElementById('avatar-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const avatarForm = document.getElementById('avatar-form');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarContainer = document.getElementById('avatar-container');
+
+    function showMessage(msg) {
+      alert(msg);
+    }
+
+    // Upload foto (tanpa fetch)
+    uploadBtn.addEventListener('click', () => avatarInput.click());
+
+    avatarInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      // Validasi
+      if (!file.type.startsWith('image/')) {
+        showMessage('File harus gambar!');
+        this.value = '';
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        showMessage('Maksimal 2MB!');
+        this.value = '';
+        return;
+      }
+
+      // Submit form
+      avatarForm.submit();
+    });
+
+    // Hapus foto sekarang pakai form submit biasa (non-fetch), backend akan redirect
+    // Jadi tidak perlu JS khusus kecuali mau preview langsung
+  })();
+</script>
+</body>
+</html>

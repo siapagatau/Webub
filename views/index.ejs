@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📱 Berbagi File - Feed</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ===== Gaya CSS (sama seperti sebelumnya) ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      line-height: 1.6;
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-size: 16px;
+    }
+    
+    /* Navbar */
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .navbar h1 { font-size: 1.5rem; color: #1877f2; }
+    .nav-links { display: flex; gap: 15px; flex-wrap: wrap; }
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: #1877f2; }
+    
+    /* Post Card */
+    .post {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #1877f2, #42b72a);
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+    .user-info {
+      flex: 1;
+    }
+    .username {
+      font-weight: bold;
+      text-decoration: none;
+      color: #000;
+      font-size: 1.1rem;
+    }
+    .username:hover { text-decoration: underline; }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    
+    /* Media */
+    .media-container {
+      margin: 15px 0;
+      text-align: center;
+      background: #f8f9fa;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .media {
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+    }
+    .file-info {
+      padding: 15px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    
+    /* Caption */
+    .caption {
+      margin: 15px 0;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 25px;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #666;
+      transition: color 0.3s;
+    }
+    .action-btn:hover { color: #1877f2; }
+    .action-btn.liked { color: #e41e3f; }
+    
+    /* Comments */
+    .comments {
+      margin-top: 15px;
+    }
+    .comment {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .comment strong {
+      color: #1877f2;
+      margin-right: 8px;
+    }
+    .comment-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .comment-form input {
+      font-size: 16px;
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+    }
+    .comment-form input:focus {
+      border-color: #1877f2;
+    }
+    .comment-form button {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      background: white;
+      border-radius: 15px;
+    }
+    .empty-state .emoji { font-size: 4rem; margin-bottom: 20px; }
+    
+    /* Loader untuk infinite scroll */
+    .loader {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.2rem;
+      color: #666;
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .navbar { flex-direction: column; text-align: center; }
+      .actions { justify-content: space-around; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>📱 Social Feed</h1>
+    <div class="nav-links">
+      <a href="/" title="Beranda">🏠</a>
+      <a href="/search" title="Cari">🔍</a>
+      <% if (currentUser) { %>
+        <a href="/upload" title="Upload">📤</a>
+        <a href="/notifications" title="Notifikasi">🔔</a>
+        <a href="/profile/<%= currentUser.id %>" title="Profil">👤</a>
+        <a href="/logout" title="Logout">🚪</a>
+      <% } else { %>
+        <a href="/login" title="Login">🔐</a>
+        <a href="/register" title="Daftar">📝</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <div class="container" id="feed-container">
+    <% if (posts.length === 0) { %>
+      <div class="empty-state">
+        <div class="emoji">📭</div>
+        <h2>Belum ada postingan</h2>
+        <% if (currentUser) { %>
+          <p>Jadilah yang pertama upload! ✨</p>
+          <a href="/upload" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #1877f2; color: white; text-decoration: none; border-radius: 25px;">📤 Upload Sekarang</a>
+        <% } else { %>
+          <p>Login untuk mulai berbagi! 🔐</p>
+          <div style="margin-top: 20px;">
+            <a href="/login" style="display: inline-block; margin-right: 10px; padding: 10px 20px; background: #1877f2; color: white; text-decoration: none; border-radius: 25px;">Login</a>
+            <a href="/register" style="display: inline-block; padding: 10px 20px; background: #42b72a; color: white; text-decoration: none; border-radius: 25px;">Daftar</a>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <% posts.forEach((post, index) => { %>
+      <div class="post" data-post-id="<%= post.id %>">
+        <div class="post-header">
+          <% if (post.user.avatar) { %>
+            <img src="<%= post.user.avatar %>" class="avatar" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+          <% } else { %>
+            <div class="avatar">👤</div>
+          <% } %>
+          <div class="user-info">
+            <a href="/profile/<%= post.user.id %>" class="username">@<%= post.user.username %></a>
+            <div class="timestamp"><%= new Date(post.timestamp).toLocaleString('id-ID') %></div>
+          </div>
+        </div>
+
+        <div class="media-container">
+          <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
+            <a href="/post/<%= post.id %>">
+              <img src="<%= post.mediaUrl %>" class="media" alt="post image" loading="lazy">
+            </a>
+          <% } else if (post.mediaType === 'video') { %>
+            <video controls class="media">
+              <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+            </video>
+            <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+          <% } else if (post.mediaType === 'audio') { %>
+            <audio controls class="media">
+              <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
+            </audio>
+            <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+          <% } else { %>
+            <a href="/post/<%= post.id %>">
+              <div class="file-info">📄 Dokumen</div>
+            </a>
+          <% } %>
+        </div>
+
+        <% if (post.caption) { %>
+          <div class="caption"><%= post.caption %></div>
+        <% } %>
+
+        <div class="actions">
+          <% if (currentUser) { %>
+            <button 
+              class="action-btn <%= post.liked ? 'liked' : '' %>"
+              onclick="toggleLike('<%= post.id %>', this)"
+            >
+              <span class="like-icon"><%= post.liked ? '❤️' : '🤍' %></span>
+              <span class="like-count"><%= post.likesCount %></span>
+            </button>
+          <% } else { %>
+            <span class="action-btn" style="cursor: default;">
+              <span class="like-icon">❤️</span>
+              <span class="like-count"><%= post.likesCount %></span>
+            </span>
+          <% } %>
+          <a href="/post/<%= post.id %>" class="action-btn" style="text-decoration: none;">
+            💬 <%= post.comments.length %>
+          </a>
+        </div>
+
+        <!-- BAGIAN KOMENTAR: HANYA 3 KOMENTAR PERTAMA + LINK KE DETAIL -->
+        <div class="comments" id="comments-<%= post.id %>">
+          <div id="comment-list-<%= post.id %>">
+            <% if (post.comments.length > 0) { %>
+              <% post.comments.slice(0, 3).forEach((c, idx) => { %>
+                <div class="comment">
+                  <% if (c.avatar) { %>
+                    <img src="<%= c.avatar %>" style="width:25px; height:25px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px;">
+                  <% } else { %>
+                    <span style="font-size:20px; margin-right:5px;">👤</span>
+                  <% } %>
+                  <strong><%= c.username %>:</strong> <%= c.text %>
+                </div>
+              <% }) %>
+              
+              <% if (post.comments.length > 3) { %>
+                <div style="margin-top: 8px;">
+                  <a href="/post/<%= post.id %>" style="color: #1877f2; text-decoration: none; font-size: 0.9rem;">
+                    💬 Lihat semua <%= post.comments.length %> komentar
+                  </a>
+                </div>
+              <% } %>
+            <% } %>
+          </div>
+
+          <% if (currentUser) { %>
+            <form onsubmit="addComment(event, '<%= post.id %>')" class="comment-form">
+              <input type="text" name="comment" placeholder="Tulis komentar..." required maxlength="500">
+              <button type="submit">Kirim</button>
+            </form>
+          <% } else { %>
+            <p style="text-align: center; color: #666; margin-top: 10px;">
+              <a href="/login" style="color: #1877f2;">Login</a> untuk berkomentar
+            </p>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+
+    <!-- Elemen sentinel untuk infinite scroll (opsional) -->
+    <div id="load-more-trigger" style="height: 10px;"></div>
+    <div id="loader" class="loader" style="display: none;">⏳ Memuat postingan...</div>
+  </div>
+
+  <script>
+    // Fungsi toggle like (sama seperti sebelumnya)
+    function toggleLike(postId, button) {
+      fetch('/like/' + postId, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const icon = button.querySelector('.like-icon');
+            const count = button.querySelector('.like-count');
+            icon.textContent = data.liked ? '❤️' : '🤍';
+            count.textContent = data.likeCount;
+            if (data.liked) button.classList.add('liked');
+            else button.classList.remove('liked');
+          }
+        });
+    }
+
+    // Fungsi tambah komentar
+    function addComment(event, postId) {
+      event.preventDefault();
+      const form = event.target;
+      const input = form.querySelector('input[name="comment"]');
+      const text = input.value.trim();
+      if (!text) return;
+
+      fetch('/comment/' + postId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: text })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Ambil daftar komentar
+          const list = document.getElementById('comment-list-' + postId);
+          
+          // Jika sebelumnya hanya ada 3 komentar, mungkin perlu update link "Lihat semua"
+          const commentCount = list.querySelectorAll('.comment').length;
+          const seeAllLink = list.querySelector('a[href="/post/' + postId + '"]');
+          
+          // Tambah komentar baru (tidak perlu disembunyikan)
+          const newComment = document.createElement('div');
+          newComment.className = 'comment';
+          newComment.innerHTML = `
+            <% if (currentUser && currentUser.avatar) { %>
+              <img src="<%= currentUser.avatar %>" style="width:25px; height:25px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px;">
+            <% } else { %>
+              <span style="font-size:20px; margin-right:5px;">👤</span>
+            <% } %>
+            <strong>${data.comment.username || 'Kamu'}:</strong> ${data.comment.text}
+          `;
+          
+          // Sisipkan sebelum link "Lihat semua" jika ada
+          if (seeAllLink) {
+            list.insertBefore(newComment, seeAllLink.parentNode);
+            // Update teks link (jumlah komentar bertambah)
+            const newCount = commentCount + 1;
+            seeAllLink.textContent = `💬 Lihat semua ${newCount} komentar`;
+          } else {
+            // Jika belum ada link, berarti komentar sebelumnya <= 3, sekarang bisa jadi >3
+            list.appendChild(newComment);
+            // Jika setelah ditambah menjadi 4 komentar, tambahkan link
+            if (commentCount + 1 > 3) {
+              const linkDiv = document.createElement('div');
+              linkDiv.style.marginTop = '8px';
+              linkDiv.innerHTML = `<a href="/post/${postId}" style="color: #1877f2; text-decoration: none; font-size: 0.9rem;">💬 Lihat semua ${commentCount + 1} komentar</a>`;
+              list.appendChild(linkDiv);
+            }
+          }
+
+          input.value = '';
+        }
+      });
+    }
+
+    // ==================== INFINITE SCROLL (opsional) ====================
+    // (Kode infinite scroll bisa ditambahkan di sini jika diperlukan)
+  </script>
+</body>
+</html>
