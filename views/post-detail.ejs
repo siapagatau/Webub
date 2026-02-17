@@ -223,11 +223,16 @@
           <% if (comments.length === 0) { %>
             <p style="color: #666; text-align: center;">Belum ada komentar. Jadilah yang pertama!</p>
           <% } %>
-          <% comments.forEach(c => { %>
-            <div class="comment">
-              <strong><%= c.username %>:</strong> <%= c.text %>
-            </div>
-          <% }) %>
+<% comments.forEach(c => { %>
+  <div class="comment">
+    <% if (c.avatar) { %>
+      <img src="<%= c.avatar %>" style="width:25px; height:25px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px;">
+    <% } else { %>
+      <span style="font-size:20px; margin-right:5px;">👤</span>
+    <% } %>
+    <strong><%= c.username %>:</strong> <%= c.text %>
+  </div>
+<% }) %>
         </div>
 
         <% if (currentUser) { %>
@@ -270,10 +275,17 @@ function toggleLike(postId, button) {
   .catch(err => console.error('Error liking post:', err));
 }
 
+<% if (currentUser) { %>
+  var currentUserAvatar = '<%= currentUser.avatar %>';
+  var currentUsername = '<%= currentUser.username %>';
+<% } else { %>
+  var currentUserAvatar = null;
+  var currentUsername = null;
+<% } %>
+
 // Fungsi untuk menambah komentar (dengan update jumlah komentar)
 function addComment(event, postId) {
   event.preventDefault();
-
   const form = event.target;
   const input = form.querySelector('input[name="comment"]');
   const text = input.value.trim();
@@ -288,8 +300,6 @@ function addComment(event, postId) {
   .then(data => {
     if (data.success) {
       const container = document.getElementById('comment-items-' + postId);
-      
-      // Hapus pesan "Belum ada komentar" jika ada
       const emptyMessage = container.querySelector('p');
       if (emptyMessage && emptyMessage.textContent.includes('Belum ada komentar')) {
         emptyMessage.remove();
@@ -298,17 +308,27 @@ function addComment(event, postId) {
       // Buat elemen komentar baru
       const newComment = document.createElement('div');
       newComment.className = 'comment';
-      // Gunakan username dari response (asumsikan server mengembalikan data.user atau data.comment.username)
-      // Jika server mengembalikan { success: true, comment: { text, username } }
-      const username = data.comment.username || 'Kamu';
-      newComment.innerHTML = "<strong>" + username + ":</strong> " + data.comment.text;
-      
-      container.appendChild(newComment);
 
-      // Reset input
+      // Tentukan avatar
+      let avatarHtml;
+      if (data.comment && data.comment.avatar) {
+        // Jika server mengembalikan avatar, gunakan itu
+        avatarHtml = `<img src="${data.comment.avatar}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px;">`;
+      } else if (currentUserAvatar) {
+        // Fallback ke avatar user yang sedang login
+        avatarHtml = `<img src="${currentUserAvatar}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px;">`;
+      } else {
+        // Fallback terakhir: emoji
+        avatarHtml = `<span style="font-size:20px; margin-right:5px;">👤</span>`;
+      }
+
+      const username = (data.comment && data.comment.username) || currentUsername || 'Kamu';
+      newComment.innerHTML = avatarHtml + "<strong>" + username + ":</strong> " + data.comment.text;
+
+      container.appendChild(newComment);
       input.value = '';
 
-      // Perbarui jumlah komentar
+      // Perbarui jumlah komentar di tombol aksi
       const countSpan = document.getElementById('comment-count-' + postId);
       if (countSpan) {
         let currentCount = parseInt(countSpan.textContent) || 0;
