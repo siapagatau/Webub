@@ -4,76 +4,60 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
-// ========================
-//  Konfigurasi Environment
-// ========================
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SESSION_SECRET || 'default-secret-change-this';
 
-// ========================
-//  Pastikan folder upload ada
-// ========================
+// Pastikan folder upload ada
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log(`📁 Folder upload dibuat: ${uploadDir}`);
 }
 
-// ========================
-//  Setup View Engine
-// ========================
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// ========================
-//  Middleware
-// ========================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Session dengan store sederhana (tidak disarankan untuk production di Vercel)
-// Untuk Vercel, lebih baik gunakan JWT atau session store eksternal (Redis, MongoDB).
-// Tapi jika hanya untuk testing, tetap bisa berjalan.
 app.use(session({
   secret: SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 hari
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
-// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ========================
-//  Routes
-// ========================
+// Load routes dengan penanganan error detail
+const routesPath = path.join(__dirname, 'plugins', 'routes');
 try {
-  const routes = require('./plugins/routes');
+  const routes = require(routesPath);
   app.use('/', routes);
+  console.log('✅ Routes berhasil dimuat dari', routesPath);
 } catch (err) {
   console.error('❌ Gagal memuat routes:', err.message);
-  // Fallback route agar aplikasi tetap bisa merespon
+  console.error('Stack:', err.stack);
   app.get('/', (req, res) => {
-    res.send('🚀 Server berjalan, tapi routes tidak ditemukan. Periksa file ./plugins/routes');
+    res.status(500).send(`
+      <h1>Error memuat routes</h1>
+      <p>${err.message}</p>
+      <pre>${err.stack}</pre>
+    `);
   });
 }
 
-// ========================
-//  Error Handler
-// ========================
+// Error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.stack);
+  console.error(err.stack);
   res.status(500).send('❌ Terjadi error: ' + err.message);
 });
 
-// 404 Handler
+// 404 handler
 app.use((req, res) => {
   res.status(404).send('404 - Halaman tidak ditemukan 🏝️');
 });
 
-// ========================
-//  Jalankan Server (hanya untuk local)
-// ========================
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
@@ -81,5 +65,4 @@ if (require.main === module) {
   });
 }
 
-// Export app untuk Vercel
 module.exports = app;
