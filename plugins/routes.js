@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db, uuidv4, bcrypt } = require('../lib/database');
-//const upload = require('../lib/upload');
-const { upload, uploadAvatar } = require('../lib/upload');
+const { upload, uploadAvatar, uploadDir, avatarDir } = require('../lib/upload');
 const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
@@ -173,10 +172,10 @@ router.get('/', (req, res) => {
         const comments = db.get('comments').filter({ postId: post.id }).sortBy('timestamp').value() || [];
         
         // Tambahkan username ke komentar
-const commentsWithUser = comments.map(c => {
-  const commentUser = db.get('users').find({ id: c.userId }).value() || { username: '[deleted]', avatar: null };
-  return { ...c, username: commentUser.username, avatar: commentUser.avatar };
-});
+        const commentsWithUser = comments.map(c => {
+          const commentUser = db.get('users').find({ id: c.userId }).value() || { username: '[deleted]', avatar: null };
+          return { ...c, username: commentUser.username, avatar: commentUser.avatar };
+        });
 
         return {
           ...post,
@@ -263,9 +262,10 @@ router.post('/post/delete/:postId', isAuthenticated, (req, res) => {
     if (!post) return res.redirect('back');
     if (post.userId !== req.session.userId) return res.redirect('back');
     
-    // Hapus file fisik
+    // Hapus file fisik (gunakan uploadDir)
     if (post.mediaUrl) {
-      const filePath = path.join(__dirname, '../public', post.mediaUrl);
+      const fileName = path.basename(post.mediaUrl);
+      const filePath = path.join(uploadDir, fileName);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -295,10 +295,10 @@ router.get('/post/:postId', (req, res) => {
     const user = db.get('users').find({ id: post.userId }).value() || { username: '[deleted]', id: null };
     const likes = db.get('likes').filter({ postId }).value() || [];
     const comments = db.get('comments').filter({ postId }).sortBy('timestamp').value() || [];
-const commentsWithUser = comments.map(c => {
-  const commentUser = db.get('users').find({ id: c.userId }).value() || { username: '[deleted]', avatar: null };
-  return { ...c, username: commentUser.username, avatar: commentUser.avatar };
-});
+    const commentsWithUser = comments.map(c => {
+      const commentUser = db.get('users').find({ id: c.userId }).value() || { username: '[deleted]', avatar: null };
+      return { ...c, username: commentUser.username, avatar: commentUser.avatar };
+    });
     const liked = req.session.userId ? likes.some(l => l.userId === req.session.userId) : false;
 
     res.render('post-detail', {
@@ -491,18 +491,18 @@ router.post('/follow/:userId', isAuthenticated, (req, res) => {
 
     // Hitung jumlah followers terbaru
     const followersCount = db.get('follows').filter({ followingId: targetId }).value().length;
-const followingCount = db.get('follows')
-  .filter({ followerId: req.session.userId })
-  .value().length;
+    const followingCount = db.get('follows')
+      .filter({ followerId: req.session.userId })
+      .value().length;
 
     // Jika request AJAX (fetch) -> kirim JSON
     if (req.xhr || req.headers.accept?.includes('application/json')) {
-return res.json({
-  success: true,
-  following: !existing,
-  followersCount,
-  followingCount
-});
+      return res.json({
+        success: true,
+        following: !existing,
+        followersCount,
+        followingCount
+      });
     }
 
     // Jika bukan AJAX, redirect seperti biasa
@@ -592,69 +592,6 @@ router.post('/profile/edit', isAuthenticated, async (req, res) => {
     });
   }
 });
-
-// Halaman profil
-/*router.get('/profile/:userId', (req, res) => {
-  try {
-    const profileUser = db.get('users').find({ id: req.params.userId }).value();
-    
-    if (!profileUser) {
-      return res.status(404).render('error', { 
-        message: '❌ User tidak ditemukan',
-        backLink: '/'
-      });
-    }
-    
-    const posts = db.get('posts')
-      .filter({ userId: profileUser.id })
-      .sortBy('timestamp')
-      .reverse()
-      .value()
-      .map(post => {
-        const likes = db.get('likes').filter({ postId: post.id }).value() || [];
-        const comments = db.get('comments').filter({ postId: post.id }).value() || [];
-        return {
-          ...post,
-          likesCount: likes.length,
-          commentsCount: comments.length,
-          liked: req.session.userId ? likes.some(l => l.userId === req.session.userId) : false
-        };
-      });
-    
-    const followers = db.get('follows').filter({ followingId: profileUser.id }).value();
-    const following = db.get('follows').filter({ followerId: profileUser.id }).value();
-    const isFollowing = req.session.userId ? 
-      db.get('follows').find({ followerId: req.session.userId, followingId: profileUser.id }).value() : 
-      false;
-    
-    // Ambil followers dengan data user
-    const followersWithData = followers.map(f => {
-      const user = db.get('users').find({ id: f.followerId }).value();
-      return user ? { id: user.id, username: user.username } : null;
-    }).filter(u => u !== null);
-    
-    // Ambil following dengan data user
-    const followingWithData = following.map(f => {
-      const user = db.get('users').find({ id: f.followingId }).value();
-      return user ? { id: user.id, username: user.username } : null;
-    }).filter(u => u !== null);
-    
-    res.render('profile', {
-      profileUser,
-      posts,
-      followersCount: followers.length,
-      followingCount: following.length,
-      followers: followersWithData,
-      following: followingWithData,
-      isFollowing,
-      isOwnProfile: req.session.userId === profileUser.id
-    });
-    
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('❌ Terjadi error');
-  }
-});*/
 
 // Halaman profil
 router.get('/profile/:userId', (req, res) => {
@@ -826,55 +763,6 @@ router.get('/search', (req, res) => {
 // ==================== PP USER ====================
 
 // Upload avatar
-/*router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), (req, res) => {
-  try {
-    if (!req.file) {
-      if (req.xhr) return res.status(400).json({ success: false, message: 'Tidak ada file' });
-      return res.redirect('/profile/edit?error=no_file');
-    }
-    const avatarUrl = '/avatars/' + req.file.filename;
-    db.get('users').find({ id: req.session.userId })
-      .assign({ avatar: avatarUrl })
-      .write();
-
-    if (req.xhr) {
-      return res.json({ success: true, avatarUrl });
-    } else {
-      res.redirect('/profile/' + req.session.userId);
-    }
-  } catch (error) {
-    console.error(error);
-    if (req.xhr) return res.status(500).json({ success: false, message: 'Upload gagal' });
-    res.redirect('/profile/edit?error=upload_failed');
-  }
-});
-
-// Hapus avatar
-router.post('/profile/avatar/delete', isAuthenticated, (req, res) => {
-  try {
-    const user = db.get('users').find({ id: req.session.userId }).value();
-    if (user && user.avatar) {
-      const filePath = path.join(__dirname, '../public', user.avatar);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-      db.get('users').find({ id: req.session.userId })
-        .assign({ avatar: null })
-        .write();
-    }
-    if (req.xhr) {
-      return res.json({ success: true });
-    } else {
-      res.redirect('/profile/' + req.session.userId);
-    }
-  } catch (error) {
-    console.error(error);
-    if (req.xhr) return res.status(500).json({ success: false, message: 'Hapus gagal' });
-    res.redirect('/profile/edit?error=delete_failed');
-  }
-});*/
-
-// Upload avatar
 router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), async (req, res) => {
   try {
     if (!req.file) return res.redirect('/profile/edit?error=no_file');
@@ -893,12 +781,13 @@ router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), a
   }
 });
 
-// Hapus avatar
+// Hapus avatar (perbaiki path menggunakan avatarDir)
 router.post('/profile/avatar/delete', isAuthenticated, async (req, res) => {
   try {
     const user = db.get('users').find({ id: req.session.userId }).value();
     if (user && user.avatar) {
-      const filePath = path.join(__dirname, '../public', user.avatar);
+      const fileName = path.basename(user.avatar);
+      const filePath = path.join(avatarDir, fileName);
       try {
         await fsp.unlink(filePath);
       } catch (err) {
