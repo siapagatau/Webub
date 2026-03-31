@@ -781,7 +781,7 @@ router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), a
   }
 });
 
-// Hapus avatar (perbaiki path menggunakan avatarDir)
+// Hapus avatar
 router.post('/profile/avatar/delete', isAuthenticated, async (req, res) => {
   try {
     const user = db.get('users').find({ id: req.session.userId }).value();
