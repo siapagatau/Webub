@@ -7,6 +7,6 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: 'Halo! Saya pengguna baru 👋' },
   avatar: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
-});
+}, { _id: false });
 
 module.exports = mongoose.model('User', userSchema);

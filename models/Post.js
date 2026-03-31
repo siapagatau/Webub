@@ -9,6 +9,6 @@ const postSchema = new mongoose.Schema({
   caption: { type: String, default: '' },
   timestamp: { type: Date, default: Date.now },
   size: { type: Number }
-});
+}, { _id: false });
 
 module.exports = mongoose.model('Post', postSchema);

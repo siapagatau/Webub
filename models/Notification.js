@@ -9,6 +9,6 @@ const notificationSchema = new mongoose.Schema({
   commentId: { type: String },
   read: { type: Boolean, default: false },
   timestamp: { type: Date, default: Date.now }
-});
+}, { _id: false });
 
 module.exports = mongoose.model('Notification', notificationSchema);
