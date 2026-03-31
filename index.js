@@ -1,13 +1,14 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.SESSION_SECRET || 'default-secret-change-this';
+const SECRET = process.env.SESSION_SECRET || '7f9a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a';
 
-// Import koneksi MongoDB
-require('./lib/mongoose'); // otomatis terhubung
+// Import koneksi MongoDB (mongoose yang sudah terkoneksi)
+const mongoose = require('./lib/mongoose'); // pastikan path benar
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -17,11 +18,21 @@ app.use(express.json());
 app.use(session({
   secret: SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  saveUninitialized: false, // jangan buat session kosong
+  store: MongoStore.create({
+    mongooseConnection: mongoose.connection, // gunakan koneksi yang sudah ada
+    ttl: 14 * 24 * 60 * 60, // 14 hari
+    autoRemove: 'native',
+    touchAfter: 24 * 3600   // hanya update session sekali dalam 24 jam
+  }),
+  cookie: {
+    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 hari
+    httpOnly: true,
+    secure: false // set true jika menggunakan HTTPS
+  }
 }));
 
-// Static files (CSS, JS, dll)
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes utama
