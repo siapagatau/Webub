@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // tambahkan UUID
 const { upload, uploadAvatar, uploadToBlob, deleteFromBlob } = require('../lib/upload');
 const User = require('../models/User');
 const Post = require('../models/Post');
@@ -9,9 +10,6 @@ const Like = require('../models/Like');
 const Comment = require('../models/Comment');
 const Follow = require('../models/Follow');
 const Notification = require('../models/Notification');
-
-// Helper untuk generate ObjectId
-const generateObjectId = () => new mongoose.Types.ObjectId();
 
 // Middleware untuk mengecek login
 const isAuthenticated = (req, res, next) => {
@@ -41,10 +39,8 @@ router.use(async (req, res, next) => {
   
   if (req.session.userId) {
     try {
-      // Pastikan userId adalah ObjectId yang valid
-      const userId = req.session.userId;
-      const user = await User.findById(userId).lean();
-      
+      // GANTI: User.findById -> User.findOne({ _id: ... })
+      const user = await User.findOne({ _id: req.session.userId }).lean();
       if (!user) {
         req.session.destroy();
         return res.redirect('/login');
@@ -130,6 +126,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const newUser = new User({
+      _id: uuidv4(), // gunakan UUID untuk _id
       username,
       password: hashedPassword,
       bio: bio || 'Halo! Saya pengguna baru 👋',
@@ -164,14 +161,15 @@ router.get('/', async (req, res) => {
       .lean();
     
     const postsWithData = await Promise.all(posts.map(async (post) => {
-      const user = await User.findById(post.userId).lean() || { username: '[deleted]', _id: null };
+      // GANTI: User.findById -> User.findOne
+      const user = await User.findOne({ _id: post.userId }).lean() || { username: '[deleted]', _id: null };
       const likesCount = await Like.countDocuments({ postId: post._id });
       const comments = await Comment.find({ postId: post._id })
         .sort({ timestamp: 1 })
         .lean();
       
       const commentsWithUser = await Promise.all(comments.map(async (c) => {
-        const commentUser = await User.findById(c.userId).lean() || { username: '[deleted]', avatar: null };
+        const commentUser = await User.findOne({ _id: c.userId }).lean() || { username: '[deleted]', avatar: null };
         return { 
           ...c, 
           username: commentUser.username, 
@@ -225,6 +223,7 @@ router.post('/upload', isAuthenticated, upload.single('file'), async (req, res) 
     else if (file.mimetype === 'image/gif') fileType = 'gif';
     
     const post = new Post({
+      _id: uuidv4(), // gunakan UUID
       userId: req.session.userId,
       mediaUrl,
       mediaType: fileType,
@@ -241,6 +240,7 @@ router.post('/upload', isAuthenticated, upload.single('file'), async (req, res) 
     
     for (const follower of followers) {
       const notification = new Notification({
+        _id: uuidv4(),
         userId: follower.followerId,
         type: 'new_post',
         fromUserId: req.session.userId,
@@ -262,11 +262,8 @@ router.post('/post/delete/:postId', isAuthenticated, async (req, res) => {
   try {
     const postId = req.params.postId;
     
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return res.redirect('back');
-    }
-    
-    const post = await Post.findById(postId);
+    // HAPUS validasi ObjectId
+    const post = await Post.findOne({ _id: postId });
     
     if (!post) return res.redirect('back');
     if (post.userId.toString() !== req.session.userId) return res.redirect('back');
@@ -290,14 +287,8 @@ router.get('/post/:postId', async (req, res) => {
   try {
     const postId = req.params.postId;
     
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return res.status(404).render('error', { 
-        message: 'Postingan tidak ditemukan', 
-        backLink: '/' 
-      });
-    }
-    
-    const post = await Post.findById(postId).lean();
+    // HAPUS validasi ObjectId
+    const post = await Post.findOne({ _id: postId }).lean();
     
     if (!post) {
       return res.status(404).render('error', { 
@@ -306,14 +297,14 @@ router.get('/post/:postId', async (req, res) => {
       });
     }
     
-    const user = await User.findById(post.userId).lean() || { username: '[deleted]', _id: null };
+    const user = await User.findOne({ _id: post.userId }).lean() || { username: '[deleted]', _id: null };
     const likesCount = await Like.countDocuments({ postId });
     const comments = await Comment.find({ postId })
       .sort({ timestamp: 1 })
       .lean();
     
     const commentsWithUser = await Promise.all(comments.map(async (c) => {
-      const commentUser = await User.findById(c.userId).lean() || { username: '[deleted]', avatar: null };
+      const commentUser = await User.findOne({ _id: c.userId }).lean() || { username: '[deleted]', avatar: null };
       return { 
         ...c, 
         username: commentUser.username, 
@@ -346,11 +337,8 @@ router.post('/like/:postId', isAuthenticated, async (req, res) => {
   try {
     const postId = req.params.postId;
     
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return res.status(400).json({ success: false, message: 'Invalid post ID' });
-    }
-    
-    const post = await Post.findById(postId);
+    // HAPUS validasi ObjectId
+    const post = await Post.findOne({ _id: postId });
     if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
     
     const existing = await Like.findOne({ 
@@ -365,6 +353,7 @@ router.post('/like/:postId', isAuthenticated, async (req, res) => {
       liked = false;
     } else {
       const newLike = new Like({
+        _id: uuidv4(),
         postId,
         userId: req.session.userId,
         timestamp: new Date()
@@ -374,6 +363,7 @@ router.post('/like/:postId', isAuthenticated, async (req, res) => {
       
       if (post.userId.toString() !== req.session.userId) {
         const notification = new Notification({
+          _id: uuidv4(),
           userId: post.userId,
           type: 'like',
           fromUserId: req.session.userId,
@@ -402,14 +392,12 @@ router.post('/comment/:postId', isAuthenticated, async (req, res) => {
     
     const postId = req.params.postId;
     
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return res.status(400).json({ success: false, message: 'Invalid post ID' });
-    }
-    
-    const post = await Post.findById(postId);
+    // HAPUS validasi ObjectId
+    const post = await Post.findOne({ _id: postId });
     if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
     
     const newComment = new Comment({
+      _id: uuidv4(),
       postId,
       userId: req.session.userId,
       text: comment.trim(),
@@ -420,6 +408,7 @@ router.post('/comment/:postId', isAuthenticated, async (req, res) => {
     
     if (post.userId.toString() !== req.session.userId) {
       const notification = new Notification({
+        _id: uuidv4(),
         userId: post.userId,
         type: 'comment',
         fromUserId: req.session.userId,
@@ -432,7 +421,7 @@ router.post('/comment/:postId', isAuthenticated, async (req, res) => {
     }
     
     // Get user data for response
-    const user = await User.findById(req.session.userId).lean();
+    const user = await User.findOne({ _id: req.session.userId }).lean();
     const commentData = {
       ...newComment.toObject(),
       username: user.username,
@@ -450,14 +439,11 @@ router.post('/comment/delete/:commentId', isAuthenticated, async (req, res) => {
   try {
     const commentId = req.params.commentId;
     
-    if (!mongoose.Types.ObjectId.isValid(commentId)) {
-      return res.json({ success: false });
-    }
-    
-    const comment = await Comment.findById(commentId);
+    // HAPUS validasi ObjectId
+    const comment = await Comment.findOne({ _id: commentId });
     if (!comment) return res.json({ success: false });
     
-    const post = await Post.findById(comment.postId);
+    const post = await Post.findOne({ _id: comment.postId });
     
     if (comment.userId.toString() === req.session.userId || 
         (post && post.userId.toString() === req.session.userId)) {
@@ -484,12 +470,8 @@ router.post('/follow/:userId', isAuthenticated, async (req, res) => {
       return res.redirect('back');
     }
     
-    if (!mongoose.Types.ObjectId.isValid(targetId)) {
-      if (req.xhr) return res.json({ success: false, message: 'Invalid user ID format' });
-      return res.redirect('back');
-    }
-    
-    const targetUser = await User.findById(targetId);
+    // HAPUS validasi ObjectId
+    const targetUser = await User.findOne({ _id: targetId });
     if (!targetUser) {
       if (req.xhr) return res.json({ success: false, message: 'User not found' });
       return res.redirect('back');
@@ -512,6 +494,7 @@ router.post('/follow/:userId', isAuthenticated, async (req, res) => {
       isFollowing = false;
     } else {
       const newFollow = new Follow({
+        _id: uuidv4(),
         followerId: req.session.userId,
         followingId: targetId,
         timestamp: new Date()
@@ -520,6 +503,7 @@ router.post('/follow/:userId', isAuthenticated, async (req, res) => {
       isFollowing = true;
       
       const notification = new Notification({
+        _id: uuidv4(),
         userId: targetId,
         type: 'follow',
         fromUserId: req.session.userId,
@@ -558,7 +542,7 @@ router.post('/follow/:userId', isAuthenticated, async (req, res) => {
 
 router.get('/profile/edit', isAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findOne({ _id: req.session.userId });
     if (!user) return res.redirect('/login');
     res.render('edit-profile', { user: user.toObject(), error: null });
   } catch (error) {
@@ -570,7 +554,7 @@ router.get('/profile/edit', isAuthenticated, async (req, res) => {
 router.post('/profile/edit', isAuthenticated, async (req, res) => {
   try {
     const { bio, currentPassword, newPassword, confirmPassword } = req.body;
-    const user = await User.findById(req.session.userId);
+    const user = await User.findOne({ _id: req.session.userId });
     
     if (!user) return res.redirect('/login');
     
@@ -611,7 +595,7 @@ router.post('/profile/edit', isAuthenticated, async (req, res) => {
     res.redirect('/profile/' + req.session.userId);
   } catch (error) {
     console.error('Edit profile error:', error);
-    const user = await User.findById(req.session.userId);
+    const user = await User.findOne({ _id: req.session.userId });
     if (!user) return res.redirect('/login');
     res.render('edit-profile', { 
       user: user.toObject(), 
@@ -624,14 +608,8 @@ router.get('/profile/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(404).render('error', { 
-        message: '❌ User ID tidak valid',
-        backLink: '/'
-      });
-    }
-    
-    const profileUser = await User.findById(userId).lean();
+    // HAPUS validasi ObjectId
+    const profileUser = await User.findOne({ _id: userId }).lean();
     
     if (!profileUser) {
       return res.status(404).render('error', { 
@@ -667,7 +645,7 @@ router.get('/profile/:userId', async (req, res) => {
     
     // Ambil followers dengan data user
     const followersWithData = await Promise.all(followers.map(async (f) => {
-      const user = await User.findById(f.followerId).lean();
+      const user = await User.findOne({ _id: f.followerId }).lean();
       if (!user) return null;
       const isFollowed = req.session.userId ? 
         !!(await Follow.findOne({ followerId: req.session.userId, followingId: user._id })) : 
@@ -682,7 +660,7 @@ router.get('/profile/:userId', async (req, res) => {
     
     // Ambil following dengan data user
     const followingWithData = await Promise.all(following.map(async (f) => {
-      const user = await User.findById(f.followingId).lean();
+      const user = await User.findOne({ _id: f.followingId }).lean();
       if (!user) return null;
       const isFollowedByMe = req.session.userId ? 
         !!(await Follow.findOne({ followerId: req.session.userId, followingId: user._id })) : 
@@ -721,10 +699,10 @@ router.get('/notifications', isAuthenticated, async (req, res) => {
       .lean();
     
     const notificationsWithData = await Promise.all(notifications.map(async (notif) => {
-      const fromUser = await User.findById(notif.fromUserId).lean() || { username: '[deleted]' };
+      const fromUser = await User.findOne({ _id: notif.fromUserId }).lean() || { username: '[deleted]' };
       let post = null;
       if (notif.postId) {
-        post = await Post.findById(notif.postId).lean();
+        post = await Post.findOne({ _id: notif.postId }).lean();
       }
       return { ...notif, fromUser, post };
     }));
@@ -790,7 +768,7 @@ router.get('/search', async (req, res) => {
         .lean();
       
       results.posts = await Promise.all(posts.map(async (post) => {
-        const user = await User.findById(post.userId).lean() || { username: '[deleted]' };
+        const user = await User.findOne({ _id: post.userId }).lean() || { username: '[deleted]' };
         const likesCount = await Like.countDocuments({ postId: post._id });
         const commentsCount = await Comment.countDocuments({ postId: post._id });
         return { ...post, user, likesCount, commentsCount };
@@ -815,7 +793,7 @@ router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), a
     if (!req.file) return res.redirect('/profile/edit?error=no_file');
     
     const avatarUrl = await uploadToBlob(req.file, 'avatars');
-    const user = await User.findById(req.session.userId);
+    const user = await User.findOne({ _id: req.session.userId });
     
     if (user.avatar) {
       await deleteFromBlob(user.avatar);
@@ -833,7 +811,7 @@ router.post('/profile/avatar', isAuthenticated, uploadAvatar.single('avatar'), a
 
 router.post('/profile/avatar/delete', isAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.session.userId);
+    const user = await User.findOne({ _id: req.session.userId });
     
     if (user && user.avatar) {
       await deleteFromBlob(user.avatar);
