@@ -7,28 +7,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SESSION_SECRET || '7f9a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a';
 
-// Import koneksi MongoDB (mongoose yang sudah terkoneksi)
-const mongoose = require('./lib/mongoose'); // pastikan path benar
+// Import mongoose (memulai koneksi) dan ambil URI
+const mongoose = require('./lib/mongoose');
+const MONGODB_URI = mongoose.MONGODB_URI; // atau langsung gunakan string dari environment
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// **PERBAIKAN**: Gunakan mongoUrl, bukan mongooseConnection
 app.use(session({
   secret: SECRET,
   resave: false,
-  saveUninitialized: false, // jangan buat session kosong
+  saveUninitialized: false,
   store: MongoStore.create({
-    mongooseConnection: mongoose.connection, // gunakan koneksi yang sudah ada
-    ttl: 14 * 24 * 60 * 60, // 14 hari
+    mongoUrl: MONGODB_URI,  // <-- pakai connection string langsung
+    ttl: 14 * 24 * 60 * 60,
     autoRemove: 'native',
-    touchAfter: 24 * 3600   // hanya update session sekali dalam 24 jam
+    touchAfter: 24 * 3600
   }),
   cookie: {
-    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 hari
+    maxAge: 14 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    secure: false // set true jika menggunakan HTTPS
+    secure: false
   }
 }));
 
