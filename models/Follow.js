@@ -1,6 +1,7 @@
 const mongoose = require('../lib/mongoose');
 
 const followSchema = new mongoose.Schema({
+  _id: { type: String, required: true }, // UUID string
   followerId: { type: String, required: true },
   followingId: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
