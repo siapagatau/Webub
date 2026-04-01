@@ -11,6 +11,13 @@ const Comment = require('../models/Comment');
 const Follow = require('../models/Follow');
 const Notification = require('../models/Notification');
 
+console.log('typeof mongoose in routes:', typeof mongoose);
+console.log('typeof mongoose.Schema in routes:', typeof mongoose.Schema);
+if (typeof mongoose.Schema !== 'function') {
+    console.error('mongoose.Schema is not a function!');
+    console.log('Keys in mongoose:', Object.keys(mongoose));
+}
+
 // Middleware untuk mengecek login
 const isAuthenticated = (req, res, next) => {
   if (req.session.userId) return next();
