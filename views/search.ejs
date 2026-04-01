@@ -266,13 +266,13 @@
   <% } else { %>
     <div class="avatar">👤</div>
   <% } %>
-  <a href="/profile/<%= user.id %>" style="text-decoration:none; color:#333;">@<%= user.username %></a>
+  <a href="/profile/<%= user._id %>" style="text-decoration:none; color:#333;">@<%= user.username %></a>
 </div>
 
-            <% if (currentUser && currentUser.id !== user.id) { %>
+            <% if (currentUser && currentUser._id !== user._id) { %>
               <button 
                 class="btn-follow <%= user.isFollowing ? 'following' : '' %>"
-                onclick="toggleFollowSearch('<%= user.id %>', this)"
+                onclick="toggleFollowSearch('<%= user._id %>', this)"
               >
                 <%= user.isFollowing ? '❌ Unfollow' : '➕ Follow' %>
               </button>
@@ -292,28 +292,28 @@
         <% results.posts.forEach(post => { %>
           <div class="post-item">
 
-            <a href="/profile/<%= post.user.id %>" class="post-user">
+            <a href="/profile/<%= post.user._id %>" class="post-user">
               @<%= post.user.username %>
             </a>
 
             <div class="post-media">
-              <a href="/post/<%= post.id %>">
+              <a href="/post/<%= post._id %>">
   <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
-    <a href="/post/<%= post.id %>">
+    <a href="/post/<%= post._id %>">
       <img src="<%= post.mediaUrl %>" class="media" alt="post image" loading="lazy">
     </a>
   <% } else if (post.mediaType === 'video') { %>
     <video controls class="media">
       <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
     </video>
-    <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+    <div><a href="/post/<%= post._id %>">🔗 Lihat detail</a></div>
   <% } else if (post.mediaType === 'audio') { %>
     <audio controls class="media">
       <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
     </audio>
-    <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+    <div><a href="/post/<%= post._id %>">🔗 Lihat detail</a></div>
   <% } else { %>
-    <a href="/post/<%= post.id %>">
+    <a href="/post/<%= post._id %>">
       <div class="file-info">📄 Dokumen</div>
     </a>
   <% } %>

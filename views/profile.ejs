@@ -225,7 +225,7 @@
       <% if (currentUser) { %>
         <a href="/upload">📤</a>
         <a href="/notifications">🔔</a>
-        <% if (currentUser.id === profileUser.id) { %>
+        <% if (currentUser._id === profileUser._id) { %>
           <a href="/profile/edit">✏️</a>
         <% } %>
         <a href="/logout">🚪</a>
@@ -265,12 +265,12 @@
 
       <div class="action-buttons">
         <% if (currentUser) { %>
-          <% if (currentUser.id === profileUser.id) { %>
+          <% if (currentUser._id === profileUser._id) { %>
             <a href="/profile/edit" class="btn btn-primary">✏️ Edit Profil</a>
           <% } else { %>
             <button 
               class="btn <%= isFollowing ? 'btn-secondary' : 'btn-primary' %>"
-              onclick="toggleFollow('<%= profileUser.id %>', this)"
+              onclick="toggleFollow('<%= profileUser._id %>', this)"
             >
               <%= isFollowing ? '❌ Unfollow' : '➕ Follow' %>
             </button>
@@ -287,7 +287,7 @@
       <div style="text-align: center; padding: 40px; background: white; border-radius: 15px;">
         <div style="font-size: 4rem;">📭</div>
         <p style="color: #666; margin-top: 20px;">Belum ada postingan</p>
-        <% if (currentUser && currentUser.id === profileUser.id) { %>
+        <% if (currentUser && currentUser._id === profileUser._id) { %>
           <a href="/upload" class="btn btn-primary" style="margin-top: 20px;">📤 Upload Sekarang</a>
         <% } %>
       </div>
@@ -295,7 +295,7 @@
       <div class="posts-grid">
         <% posts.forEach(post => { %>
           <div class="post-card">
-            <a href="/post/<%= post.id %>" style="text-decoration: none; color: inherit;">
+            <a href="/post/<%= post._id %>" style="text-decoration: none; color: inherit;">
               <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
                 <img src="<%= post.mediaUrl %>" class="post-media" alt="post">
               <% } else if (post.mediaType === 'video') { %>
@@ -313,7 +313,7 @@
               <span>💬 <%= post.commentsCount %></span>
             </div>
             <% if (isOwnProfile) { %>
-              <form action="/post/delete/<%= post.id %>" method="POST" onsubmit="return confirm('Hapus postingan?')">
+              <form action="/post/delete/<%= post._id %>" method="POST" onsubmit="return confirm('Hapus postingan?')">
                 <button type="submit" style="width: 100%; padding: 5px; background: #dc3545; color: white; border: none; cursor: pointer;">🗑️ Hapus</button>
               </form>
             <% } %>
@@ -333,20 +333,20 @@
         <p style="text-align: center; color: #666;">Belum ada followers</p>
       <% } %>
       <% followers.forEach(f => { %>
-        <div class="user-item" id="follower-<%= f.id %>">
+        <div class="user-item" id="follower-<%= f._id %>">
           <div style="display: flex; align-items: center; gap: 10px;">
             <% if (f.avatar) { %>
               <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
             <% } else { %>
               <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
             <% } %>
-            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
+            <a href="/profile/<%= f._id %>">@<%= f.username %></a>
           </div>
-          <% if (currentUser && currentUser.id !== f.id) { %>
+          <% if (currentUser && currentUser._id !== f._id) { %>
             <button 
               class="btn <%= f.isFollowed ? 'btn-secondary' : 'btn-primary' %>"
-              onclick="toggleFollow('<%= f.id %>', this)"
-              data-user-id="<%= f.id %>"
+              onclick="toggleFollow('<%= f._id %>', this)"
+              data-user-id="<%= f._id %>"
               type="button"
             >
               <%= f.isFollowed ? '❌ Unfollow' : '➕ Follow' %>
@@ -368,29 +368,29 @@
         <p style="text-align: center; color: #666;">Belum mengikuti siapapun</p>
       <% } %>
       <% following.forEach(f => { %>
-        <div class="user-item" id="following-<%= f.id %>">
+        <div class="user-item" id="following-<%= f._id %>">
           <div style="display: flex; align-items: center; gap: 10px;">
             <% if (f.avatar) { %>
               <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
             <% } else { %>
               <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
             <% } %>
-            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
+            <a href="/profile/<%= f._id %>">@<%= f.username %></a>
           </div>
-          <% if (currentUser && currentUser.id === profileUser.id) { %>
+          <% if (currentUser && currentUser._id === profileUser._id) { %>
             <button 
               class="btn btn-secondary"
-              onclick="toggleFollow('<%= f.id %>', this)"
-              data-user-id="<%= f.id %>"
+              onclick="toggleFollow('<%= f._id %>', this)"
+              data-user-id="<%= f._id %>"
               type="button"
             >
               ❌ Unfollow
             </button>
-          <% } else if (currentUser && currentUser.id !== f.id) { %>
+          <% } else if (currentUser && currentUser._id !== f._id) { %>
             <button 
               class="btn <%= f.isFollowedByMe ? 'btn-secondary' : 'btn-primary' %>"
-              onclick="toggleFollow('<%= f.id %>', this)"
-              data-user-id="<%= f.id %>"
+              onclick="toggleFollow('<%= f._id %>', this)"
+              data-user-id="<%= f._id %>"
               type="button"
             >
               <%= f.isFollowedByMe ? '❌ Unfollow' : '➕ Follow' %>
@@ -404,9 +404,9 @@
 
 <script>
 // ID pemilik profil yang sedang dilihat
-const PROFILE_USER_ID = '<%= profileUser.id %>';
+const PROFILE_USER_ID = '<%= profileUser._id %>';
 // ID pengguna yang sedang login (jika ada)
-const CURRENT_USER_ID = '<%= currentUser ? currentUser.id : null %>';
+const CURRENT_USER_ID = '<%= currentUser ? currentUser._id : null %>';
 // Apakah ini profil sendiri?
 const IS_OWN_PROFILE = CURRENT_USER_ID === PROFILE_USER_ID;
 

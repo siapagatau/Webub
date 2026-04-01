@@ -173,7 +173,7 @@
     <div class="avatar">👤</div>
   <% } %>
   <div class="user-info">
-    <a href="/profile/<%= user.id %>" class="username">@<%= user.username %></a>
+    <a href="/profile/<%= user._id %>" class="username">@<%= user.username %></a>
     <div class="timestamp"><%= new Date(post.timestamp).toLocaleString('id-ID') %></div>
   </div>
 </div>
@@ -203,7 +203,7 @@
       <!-- Actions: like & comment count (menggunakan JavaScript) -->
 <div class="actions">
   <% if (currentUser) { %>
-    <button onclick="toggleLike('<%= post.id %>', this)" class="action-btn <%= liked ? 'liked' : '' %>">
+    <button onclick="toggleLike('<%= post._id %>', this)" class="action-btn <%= liked ? 'liked' : '' %>">
       <span class="like-icon"><%= liked ? '❤️' : '🤍' %></span>
       <span class="like-count"><%= likesCount %></span>
     </button>
@@ -213,13 +213,13 @@
       <span class="like-count"><%= likesCount %></span>
     </span>
   <% } %>
-  <span class="action-btn">💬 <span id="comment-count-<%= post.id %>"><%= comments.length %></span></span>
+  <span class="action-btn">💬 <span id="comment-count-<%= post._id %>"><%= comments.length %></span></span>
 </div>
 
       <!-- Bagian komentar dengan id container untuk komentar -->
       <div class="comments-section">
         <h4>Komentar</h4>
-        <div id="comment-items-<%= post.id %>">
+        <div id="comment-items-<%= post._id %>">
           <% if (comments.length === 0) { %>
             <p style="color: #666; text-align: center;">Belum ada komentar. Jadilah yang pertama!</p>
           <% } %>
@@ -237,7 +237,7 @@
 
         <% if (currentUser) { %>
           <!-- Form komentar menggunakan onsubmit untuk memanggil addComment -->
-          <form onsubmit="addComment(event, '<%= post.id %>')" class="comment-form">
+          <form onsubmit="addComment(event, '<%= post._id %>')" class="comment-form">
             <input type="text" name="comment" placeholder="Tulis komentar..." required maxlength="500">
             <button type="submit">Kirim</button>
           </form>

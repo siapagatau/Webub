@@ -208,7 +208,7 @@
       <% if (currentUser) { %>
         <a href="/upload" title="Upload">📤</a>
         <a href="/notifications" title="Notifikasi">🔔</a>
-        <a href="/profile/<%= currentUser.id %>" title="Profil">👤</a>
+        <a href="/profile/<%= currentUser._id %>" title="Profil">👤</a>
         <a href="/logout" title="Logout">🚪</a>
       <% } else { %>
         <a href="/login" title="Login">🔐</a>
@@ -236,7 +236,7 @@
     <% } %>
 
     <% posts.forEach((post, index) => { %>
-      <div class="post" data-post-id="<%= post.id %>">
+      <div class="post" data-post-id="<%= post._id %>">
         <div class="post-header">
           <% if (post.user.avatar) { %>
             <img src="<%= post.user.avatar %>" class="avatar" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
@@ -244,28 +244,28 @@
             <div class="avatar">👤</div>
           <% } %>
           <div class="user-info">
-            <a href="/profile/<%= post.user.id %>" class="username">@<%= post.user.username %></a>
+            <a href="/profile/<%= post.user._id %>" class="username">@<%= post.user.username %></a>
             <div class="timestamp"><%= new Date(post.timestamp).toLocaleString('id-ID') %></div>
           </div>
         </div>
 
         <div class="media-container">
           <% if (post.mediaType === 'image' || post.mediaType === 'gif') { %>
-            <a href="/post/<%= post.id %>">
+            <a href="/post/<%= post._id %>">
               <img src="<%= post.mediaUrl %>" class="media" alt="post image" loading="lazy">
             </a>
           <% } else if (post.mediaType === 'video') { %>
             <video controls class="media">
               <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
             </video>
-            <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+            <div><a href="/post/<%= post._id %>">🔗 Lihat detail</a></div>
           <% } else if (post.mediaType === 'audio') { %>
             <audio controls class="media">
               <source src="<%= post.mediaUrl %>" type="<%= post.mimeType %>">
             </audio>
-            <div><a href="/post/<%= post.id %>">🔗 Lihat detail</a></div>
+            <div><a href="/post/<%= post._id %>">🔗 Lihat detail</a></div>
           <% } else { %>
-            <a href="/post/<%= post.id %>">
+            <a href="/post/<%= post._id %>">
               <div class="file-info">📄 Dokumen</div>
             </a>
           <% } %>
@@ -279,7 +279,7 @@
           <% if (currentUser) { %>
             <button 
               class="action-btn <%= post.liked ? 'liked' : '' %>"
-              onclick="toggleLike('<%= post.id %>', this)"
+              onclick="toggleLike('<%= post._id %>', this)"
             >
               <span class="like-icon"><%= post.liked ? '❤️' : '🤍' %></span>
               <span class="like-count"><%= post.likesCount %></span>
@@ -290,14 +290,14 @@
               <span class="like-count"><%= post.likesCount %></span>
             </span>
           <% } %>
-          <a href="/post/<%= post.id %>" class="action-btn" style="text-decoration: none;">
+          <a href="/post/<%= post._id %>" class="action-btn" style="text-decoration: none;">
             💬 <%= post.comments.length %>
           </a>
         </div>
 
         <!-- BAGIAN KOMENTAR: HANYA 3 KOMENTAR PERTAMA + LINK KE DETAIL -->
-        <div class="comments" id="comments-<%= post.id %>">
-          <div id="comment-list-<%= post.id %>">
+        <div class="comments" id="comments-<%= post._id %>">
+          <div id="comment-list-<%= post._id %>">
             <% if (post.comments.length > 0) { %>
               <% post.comments.slice(0, 3).forEach((c, idx) => { %>
                 <div class="comment">
@@ -312,7 +312,7 @@
               
               <% if (post.comments.length > 3) { %>
                 <div style="margin-top: 8px;">
-                  <a href="/post/<%= post.id %>" style="color: #1877f2; text-decoration: none; font-size: 0.9rem;">
+                  <a href="/post/<%= post._id %>" style="color: #1877f2; text-decoration: none; font-size: 0.9rem;">
                     💬 Lihat semua <%= post.comments.length %> komentar
                   </a>
                 </div>
@@ -321,7 +321,7 @@
           </div>
 
           <% if (currentUser) { %>
-            <form onsubmit="addComment(event, '<%= post.id %>')" class="comment-form">
+            <form onsubmit="addComment(event, '<%= post._id %>')" class="comment-form">
               <input type="text" name="comment" placeholder="Tulis komentar..." required maxlength="500">
               <button type="submit">Kirim</button>
             </form>

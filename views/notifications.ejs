@@ -111,9 +111,9 @@
         <div class="avatar">👤</div>
         <div class="content">
           <% if (n.type === 'like') { %>
-            <strong><%= n.fromUser.username %></strong> menyukai <a href="/profile/<%= n.fromUser.id %>">postinganmu</a> ❤️
+            <strong><%= n.fromUser.username %></strong> menyukai <a href="/profile/<%= n.fromUser._id %>">postinganmu</a> ❤️
           <% } else if (n.type === 'comment') { %>
-            <strong><%= n.fromUser.username %></strong> mengomentari <a href="/profile/<%= n.fromUser.id %>">postinganmu</a> 💬
+            <strong><%= n.fromUser.username %></strong> mengomentari <a href="/profile/<%= n.fromUser._id %>">postinganmu</a> 💬
           <% } else if (n.type === 'follow') { %>
             <strong><%= n.fromUser.username %></strong> mulai mengikutimu 👥
           <% } else if (n.type === 'new_post') { %>
