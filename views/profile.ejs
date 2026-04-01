@@ -333,20 +333,20 @@
         <p style="text-align: center; color: #666;">Belum ada followers</p>
       <% } %>
       <% followers.forEach(f => { %>
-        <div class="user-item" id="follower-<%= f._id %>">
+        <div class="user-item" id="follower-<%= f.id %>">
           <div style="display: flex; align-items: center; gap: 10px;">
             <% if (f.avatar) { %>
               <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
             <% } else { %>
               <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
             <% } %>
-            <a href="/profile/<%= f._id %>">@<%= f.username %></a>
+            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
           </div>
-          <% if (currentUser && currentUser._id !== f._id) { %>
+          <% if (currentUser && currentUser._id !== f.id) { %>
             <button 
               class="btn <%= f.isFollowed ? 'btn-secondary' : 'btn-primary' %>"
-              onclick="toggleFollow('<%= f._id %>', this)"
-              data-user-id="<%= f._id %>"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
               type="button"
             >
               <%= f.isFollowed ? '❌ Unfollow' : '➕ Follow' %>
@@ -368,29 +368,29 @@
         <p style="text-align: center; color: #666;">Belum mengikuti siapapun</p>
       <% } %>
       <% following.forEach(f => { %>
-        <div class="user-item" id="following-<%= f._id %>">
+        <div class="user-item" id="following-<%= f.id %>">
           <div style="display: flex; align-items: center; gap: 10px;">
             <% if (f.avatar) { %>
               <img src="<%= f.avatar %>" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
             <% } else { %>
               <div style="width:35px; height:35px; border-radius:50%; background:#ddd; display:flex; align-items:center; justify-content:center;">👤</div>
             <% } %>
-            <a href="/profile/<%= f._id %>">@<%= f.username %></a>
+            <a href="/profile/<%= f.id %>">@<%= f.username %></a>
           </div>
           <% if (currentUser && currentUser._id === profileUser._id) { %>
             <button 
               class="btn btn-secondary"
-              onclick="toggleFollow('<%= f._id %>', this)"
-              data-user-id="<%= f._id %>"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
               type="button"
             >
               ❌ Unfollow
             </button>
-          <% } else if (currentUser && currentUser._id !== f._id) { %>
+          <% } else if (currentUser && currentUser._id !== f.id) { %>
             <button 
               class="btn <%= f.isFollowedByMe ? 'btn-secondary' : 'btn-primary' %>"
-              onclick="toggleFollow('<%= f._id %>', this)"
-              data-user-id="<%= f._id %>"
+              onclick="toggleFollow('<%= f.id %>', this)"
+              data-user-id="<%= f.id %>"
               type="button"
             >
               <%= f.isFollowedByMe ? '❌ Unfollow' : '➕ Follow' %>
