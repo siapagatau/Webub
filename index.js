@@ -1,14 +1,13 @@
 const express = require('express');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const cookieSession = require('cookie-session');
 const path = require('path');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SESSION_SECRET || '7f9a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a';
 
-// Import mongoose dan clientPromise
-const { clientPromise, MONGODB_URI } = require('./lib/mongoose');
+// Import mongoose (tetap digunakan untuk model data)
+const { clientPromise, MONGODB_URI } = require('./lib/mongoose'); // jika masih perlu untuk model
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -16,23 +15,14 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Konfigurasi session store dengan clientPromise
-app.use(session({
-  secret: SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    clientPromise,  // Gunakan clientPromise, bukan mongoUrl
-    ttl: 14 * 24 * 60 * 60,
-    autoRemove: 'native',
-    touchAfter: 24 * 3600,
-  }),
-  cookie: {
-    maxAge: 14 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // di production set true jika pakai HTTPS
-    sameSite: 'lax',
-  }
+// Konfigurasi cookie-session
+app.use(cookieSession({
+  name: 'session',
+  keys: [SECRET], // gunakan secret yang sama untuk signing
+  maxAge: 14 * 24 * 60 * 60 * 1000, // 14 hari
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production', // aktifkan hanya di HTTPS
+  sameSite: 'lax'
 }));
 
 // Static files
