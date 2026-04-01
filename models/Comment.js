@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('../lib/mongoose');
 
 const commentSchema = new mongoose.Schema({
   _id: { type: String, required: true }, // UUID string
