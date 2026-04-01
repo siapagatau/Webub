@@ -1,7 +1,7 @@
-const mongoose = require('../lib/mongoose');
+const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  _id: { type: String, required: true }, // UUID string
+  _id: { type: String, required: true },
   userId: { type: String, required: true },
   type: { type: String, enum: ['like', 'comment', 'follow', 'new_post'], required: true },
   fromUserId: { type: String, required: true },
